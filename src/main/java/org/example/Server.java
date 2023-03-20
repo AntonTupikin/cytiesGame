@@ -8,24 +8,48 @@ import static java.lang.System.*;
 
 
 public class Server {
+    private static int id = 1;
+    private static Game game;
 
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(8585)) { // порт можете выбрать любой в доступном диапазоне 0-65536. Но чтобы не нарваться на уже занятый - рекомендуем использовать около 8080
-            out.println("Сервер запущен");
-            try (Socket clientSocket = serverSocket.accept(); // ждем подключения
+        try (ServerSocket serverSocket = new ServerSocket(8585);) {
+            out.println("Сервер запущен");// стартуем сервер один(!) раз
+            while (true) { // в цикле(!) принимаем подключения
+                try (
+                        Socket clientSocket = serverSocket.accept();
+                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream());
+                ) {
+                    if (id == 1) {
+                        System.out.println("Клиент подключился");
+                        out.println(String.format("????"));
+                        out.flush();
+                        System.out.println("Первое сообщение отправлено");
+                        String word = in.readLine().toLowerCase();
+                        game = new Game(word);
+                        id++;
+                        continue;
+                    } else {
+                        System.out.println("Клиент подключился");
+                        out.println(String.format(game.getWord()));
+                        out.flush();
+                        System.out.println("Первое сообщение отправлено");
+                        String word2 = in.readLine().toLowerCase();
+                        out.write(String.format(game.check(word2)));
+                        out.flush();
+                        System.out.println("Сервер отправил сообщение клиенту");
+                        if (game.check(word2).equals("Yes")) {
+                            game.setWord(word2);
+                        }
+                    }
 
-                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
-            ) {
-                System.out.println("Клиент подключился");
-
-
-                final String name = in.readLine();
-                System.out.println("Сервер отправил сообщение клиенту");
-                out.write(String.format("Hi %s, your port is %d", name, clientSocket.getPort()));
-                out.flush();
+                }
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Не могу стартовать сервер");
+            e.printStackTrace();
         }
-    }}
+
+
+    }
+}

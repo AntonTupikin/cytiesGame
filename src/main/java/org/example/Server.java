@@ -1,32 +1,31 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import static java.lang.System.*;
-import static java.lang.System.out;
+
 
 public class Server {
 
     public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(8585)) { // порт можете выбрать любой в доступном диапазоне 0-65536. Но чтобы не нарваться на уже занятый - рекомендуем использовать около 8080
+            out.println("Сервер запущен");
+            try (Socket clientSocket = serverSocket.accept(); // ждем подключения
 
-        try (ServerSocket serverSocket = new ServerSocket(8085)) { // порт можете выбрать любой в доступном диапазоне 0-65536. Но чтобы не нарваться на уже занятый - рекомендуем использовать около 8080
+                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+            ) {
+                System.out.println("Клиент подключился");
 
-                try (Socket clientSocket = serverSocket.accept();// ждем подключения
-                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                ) { //Основной код сервака
 
-                    final String name = in.readLine();
-                    out.println(String.format("Hi %s, your port is %d", name, clientSocket.getPort())); //выводим его
-                }
-
-    } catch (IOException e) {
+                final String name = in.readLine();
+                System.out.println("Сервер отправил сообщение клиенту");
+                out.write(String.format("Hi %s, your port is %d", name, clientSocket.getPort()));
+                out.flush();
+            }
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-}
+    }}

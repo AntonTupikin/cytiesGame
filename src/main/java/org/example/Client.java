@@ -8,29 +8,25 @@ import java.net.Socket;
 
 public class Client {
 
-    public static void main(String[] args) {
-        try(Socket clientSocket = new Socket("localhost", 8585)) // этой строкой мы запрашиваем у сервера доступ на соединение)
+    public static void start() throws InterruptedException {
+        Thread.sleep(3000);
+        try (Socket clientSocket = new Socket("localhost", 8585)) // этой строкой мы запрашиваем у сервера доступ на соединение)
         {
             System.out.println("Клиент создан");
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-                 // нам нужен ридер читающий с консоли, иначе как
-                 // мы узнаем что хочет сказать клиент?
-                 // читать соообщения с сервера
                  BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); // поток чтения из сокета
-                 // писать туда же
                  BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream())); // поток записи в сокет
-            ){
+            ) {
 
                 System.out.println("Вы что-то хотели сказать? Введите это здесь:");
-                // если соединение произошло и потоки успешно созданы - мы можем
-                //  работать дальше и предложить клиенту что то ввести
-                // если нет - вылетит исключение
-                String word = reader.readLine(); // ждём пока клиент что-нибудь
-                // не напишет в консоль
-                out.write(word + "\n"); // отправляем сообщение на сервер
+
+                String word = reader.readLine();
+
+                out.write(word + "\n");
                 out.flush();
-                String serverWord = in.readLine(); // ждём, что скажет сервер
-                System.out.println(serverWord); // получив - выводим на экран
+                String serverWord = in.readLine();
+                System.out.println(serverWord);
+
             } catch (IOException e) {
                 System.err.println(e);
 
